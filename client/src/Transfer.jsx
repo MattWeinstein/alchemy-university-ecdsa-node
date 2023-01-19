@@ -1,21 +1,40 @@
 import { useState } from "react";
 import server from "./server";
+import * as secp from "ethereum-cryptography/secp256k1"
+import { keccak256 } from "ethereum-cryptography/keccak"
+import { utf8ToBytes } from "ethereum-cryptography/utils"
+import { toHex } from "ethereum-cryptography/utils";
 
-function Transfer({ address, setBalance }) {
+
+
+function Transfer({ address, setBalance, privateKey }) {
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+
+  // Step below is to create the Hashmessage. We have nothing to say besides the amount
+  const bytesHEX = toHex(utf8ToBytes(sendAmount))
+
+  const privateKeyHEX = privateKey
 
   const setValue = (setter) => (evt) => setter(evt.target.value);
 
   async function transfer(evt) {
     evt.preventDefault();
+    // Sign the txn. This will create a public signature with your pvt key
+    // Signature returns a 2 element array => [signature,recovery #]
+    const signature = secp.signSync(bytesHEX, privateKeyHEX, { recovered: true })
+    const signatureHEX = toHex(signature[0]) // 
+    const recoveryNumber = signature[1]
 
+    // Make a request to the server to validate txn
     try {
       const {
         data: { balance },
       } = await server.post(`send`, {
-        sender: address,
-        amount: parseInt(sendAmount),
+        // Sender should be signature
+        signature: signatureHEX,
+        msgHashAmount: bytesHEX,
+        recoveryNumber: recoveryNumber,
         recipient,
       });
       setBalance(balance);
