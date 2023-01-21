@@ -29,6 +29,7 @@ app.post("/send", (req, res) => {
   const { signature, recipient, msgHashAmount, recoveryNumber } = req.body;
 
   // Message hash and signature are hex. They can be UINT arrays, but must be consistent
+  // Sender can only originate from someone who signed a signature with that specific private key
   const senderPublicKey = secp.recoverPublicKey(msgHashAmount, signature, recoveryNumber)
   const senderPublicKeyHEX = toHex(senderPublicKey)
   const amountUTF = parseInt(bytesToUtf8(hexToBytes(msgHashAmount)))
