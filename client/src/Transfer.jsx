@@ -7,10 +7,11 @@ import { toHex } from "ethereum-cryptography/utils";
 
 
 
-function Transfer({ address, setBalance, privateKey }) {
+function Transfer({ address, setBalance, balance, privateKey }) {
   const [sendAmount, setSendAmount] = useState("");
   const [recipient, setRecipient] = useState("");
-
+  console.log('sendAmount', sendAmount)
+  console.log('balance', balance)
   // Step below is to create the Hashmessage. We have nothing to say besides the amount
   const bytesHEX = toHex(utf8ToBytes(sendAmount))
 
@@ -36,10 +37,12 @@ function Transfer({ address, setBalance, privateKey }) {
         msgHashAmount: bytesHEX,
         recoveryNumber: recoveryNumber,
         recipient,
-      });
+      }).then((response) => setBalance(response.data.balance));
+
+      console.log(balance)
       setBalance(balance);
     } catch (ex) {
-      alert(ex.response.data.message);
+      console.log(ex);
     }
   }
 

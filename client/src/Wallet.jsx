@@ -9,14 +9,14 @@ function Wallet({ address, setAddress, balance, setBalance, privateKey, setPriva
     setPrivateKey(privateKey)
     const address = toHex(secp.getPublicKey(privateKey));
     setAddress(address)
+    console.log('address', address)
 
     // Make a request to the server to find/update balance //
     if (address) {
-      console.log('tet')
+      console.log(address)
       const {
         data: { balance },
       } = await server.get(`balance/${address}`);
-      console.log('booo', balance)
       setBalance(balance);
     } else {
       setBalance(0);

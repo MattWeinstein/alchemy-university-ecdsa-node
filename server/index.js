@@ -5,7 +5,7 @@ const port = 3042;
 const secp = require("ethereum-cryptography/secp256k1");
 const { keccak256 } = require("ethereum-cryptography/keccak");
 const { utf8ToBytes } = require("ethereum-cryptography/utils");
-const { toHex } = require("ethereum-cryptography/utils")
+const { toHex, hexToBytes, bytesToUtf8 } = require("ethereum-cryptography/utils")
 
 
 app.use(cors());
@@ -29,19 +29,23 @@ app.post("/send", (req, res) => {
   const { signature, recipient, msgHashAmount, recoveryNumber } = req.body;
 
   // Message hash and signature are hex. They can be UINT arrays, but must be consistent
-  const publicKeyRecovered = secp.recoverPublicKey(msgHashAmount, signature, recoveryNumber)
-  console.log(publicKeyRecovered)
+  const senderPublicKey = secp.recoverPublicKey(msgHashAmount, signature, recoveryNumber)
+  const senderPublicKeyHEX = toHex(senderPublicKey)
+  const amountUTF = parseInt(bytesToUtf8(hexToBytes(msgHashAmount)))
+  console.log('senderPublicKey', toHex(senderPublicKey))
+  console.log('msgHashAmount', bytesToUtf8(hexToBytes(msgHashAmount)))
 
-  setInitialBalance(sender);
+
+  setInitialBalance(senderPublicKeyHEX);
   setInitialBalance(recipient);
 
 
-  if (balances[sender] < amount) {
+  if (balances[senderPublicKeyHEX] < amountUTF) {
     res.status(400).send({ message: "Not enough funds!" });
   } else {
-    balances[sender] -= amount;
-    balances[recipient] += amount;
-    res.send({ balance: balances[sender] });
+    balances[senderPublicKeyHEX] -= amountUTF;
+    balances[recipient] += amountUTF;
+    res.send({ balance: balances[senderPublicKeyHEX] });
   }
 });
 
